@@ -1,0 +1,403 @@
+Red Wine Quality Analysis by Sun Xiaobing
+========================================================
+This project was aimed to find Which chemical properties influence the quality of red wines. The data set was created by: Paulo Cortez (Univ. Minho), Antonio Cerdeira, Fernando Almeida, Telmo Matos and Jose Reis (CVRVV) @ 2009  
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk.
+# This prevents the code from displaying in the knitted HTML output.
+# You should set echo=FALSE for all code chunks in your file.
+library(ggplot2)
+library(dplyr)
+```
+We have downloaded the data set into our local directory, and first we load the data and have a look at it.
+```{r echo=FALSE, Load_the_Data}
+# Load the Data
+wineQualityReds<-read.csv("wineQualityReds.csv",na.string="",row.names=1)
+```
+Take a look at the data.
+```{r,cache=TRUE}
+summary(wineQualityReds)
+head(wineQualityReds)
+```
+Let's check missing values.
+```{r,cache=TRUE}
+apply(wineQualityReds,2,function(x){sum(is.na(x))})
+```
+No missing values here. 
+# Univariate Plots Section
+We explore each feature by plotting histograms and doing statistics.
+```{r echo=T, Univariate_Plots}
+qplot(wineQualityReds$fixed.acidity,binwidth=0.5)
+qplot(1,wineQualityReds$fixed.acidity,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$fixed.acidity)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$fixed.acidity)
+tapply(wineQualityReds$fixed.acidity,wineQualityReds$quality,mean)
+```
+
+Fixed acidity: most acids involved with wine or fixed or nonvolatile (do not evaporate readily). Most values concentrate between 6 and 11.There are 49 Outliers above 12.
+```{r,echo=T}
+qplot(wineQualityReds$volatile.acidity,binwidth=0.1)
+qplot(wineQualityReds$volatile.acidity,geom="density")
+qplot(1,wineQualityReds$volatile.acidity,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$volatile.acidity)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$volatile.acidity)
+tapply(wineQualityReds$volatile.acidity,wineQualityReds$quality,mean)
+```
+
+Volatile acidity: the amount of acetic acid in wine, which at too high of levels can lead to an unpleasant, vinegar taste. It seems good red wines have less volatile acidity. Most values concentrate bewteen 0.25 and 0.8.
+```{r,echo=T}
+qplot(wineQualityReds$citric.acid,bins=30)
+qplot(citric.acid,data=wineQualityReds,geom="histogram",facets=quality~.,bins=30)
+qplot(1,wineQualityReds$citric.acid,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$citric.acid)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$citric.acid)
+tapply(wineQualityReds$citric.acid,wineQualityReds$quality,mean)
+sum(wineQualityReds$citric.acid==0)
+```
+
+Citric acid: found in small quantities, citric acid can add 'freshness' and flavor to wines. Good red wines have more citric acid averagely. Note: 132 citric.acid values are 0, perhaps the amounts are to small to detect. The data are quite skewed.
+```{r,echo=T}
+qplot(wineQualityReds$residual.sugar,bins=30)
+qplot(1,wineQualityReds$residual.sugar,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$residual.sugar)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$residual.sugar)
+qplot(wineQualityReds[wineQualityReds$residual.sugar<4,]$residual.sugar,bins=30)
+tapply(wineQualityReds$residual.sugar,wineQualityReds$quality,mean)
+```
+
+Residual sugar: the amount of sugar remaining after fermentation stops, it's rare to find wines with less than 1 gram/liter and wines with greater than 45 grams/liter are considered sweet. Most values concentrate bewteen 1 and 3. There are 155 outliers. After removing the outliers, the distribution tend to be normal.
+```{r,echo=T}
+qplot(wineQualityReds$chlorides,bins=30)
+qplot(1,wineQualityReds$chlorides,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$chlorides)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$chlorides)
+qplot(wineQualityReds[wineQualityReds$chlorides<0.15,]$chlorides,bins=30)
+tapply(wineQualityReds$chlorides,wineQualityReds$quality,mean)
+```
+
+Chlorides: the amount of salt in the wine. Good wines tend to have less amount. Most values concentrate between 0.07 and 0.1. Also there are 112 outliers. After removing the outliers, the distribution tend to be normal.
+```{r,echo=T}
+qplot(wineQualityReds$free.sulfur.dioxide,bins=30)
+qplot(1,wineQualityReds$free.sulfur.dioxide,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$free.sulfur.dioxide)$out#Outliers
+length(out)#number of outliers
+summary(wineQualityReds$free.sulfur.dioxide)
+qplot(log(wineQualityReds$free.sulfur.dioxide),bins=30)
+tapply(wineQualityReds$free.sulfur.dioxide,wineQualityReds$quality,mean)
+```
+
+Free sulfur dioxide: the free form of SO2 exists in equilibrium between molecular SO2 (as a dissolved gas) and bisulfite ion; it prevents microbial growth and the oxidation of wine. Most values concentrate between 7 and 23. The data is skewed.
+```{r,echo=T}
+qplot(wineQualityReds$total.sulfur.dioxide,bins=30)
+summary(wineQualityReds$total.sulfur.dioxide)
+qplot(1,wineQualityReds$total.sulfur.dioxide,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$total.sulfur.dioxide)$out#Outliers
+length(out)#number of outliers
+qplot(wineQualityReds$total.sulfur.dioxide,bins=30)
+qplot(log(wineQualityReds$total.sulfur.dioxide),bins=30)
+tapply(wineQualityReds$total.sulfur.dioxide,wineQualityReds$quality,mean)
+```
+
+Total sulfur dioxide: amount of free and bound forms of S02; in low concentrations, SO2 is mostly undetectable in wine, but at free SO2 concentrations over 50 ppm, SO2 becomes evident in the nose and taste of wine. The values are quite skewed, so we need transform them into log values. Most values concentrate between 22 and 100. In ordert to analyze bound form sulfur sulfur dioxide, we create a new variable bf.sulfur.dioxide.
+```{r}
+wineQualityReds<-mutate(wineQualityReds, bf.sulfur.dioxide=total.sulfur.dioxide-free.sulfur.dioxide)
+qplot(wineQualityReds$bf.sulfur.dioxide,bins=30)
+summary(wineQualityReds$bf.sulfur.dioxide)
+qplot(log(wineQualityReds$bf.sulfur.dioxide),bins=30)
+tapply(wineQualityReds$bf.sulfur.dioxide,wineQualityReds$quality,mean)
+```
+
+The values are quite skewed. We can transform them.
+```{r,echo=T}
+qplot(wineQualityReds$density,bins=30)
+summary(wineQualityReds$density)
+qplot(1,wineQualityReds$density,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$density)$out#Outliers
+length(out)#number of outliers
+tapply(wineQualityReds$density,wineQualityReds$quality,mean)
+```
+
+Density: the density of water is close to that of water depending on the percent alcohol and sugar content. The density does not change much. Most values are between 0.99 and 1
+```{r,echo=T}
+qplot(wineQualityReds$pH,bins=30)
+summary(wineQualityReds$pH)
+qplot(1,wineQualityReds$pH,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$pH)$out#Outliers
+length(out)#number of outliers
+tapply(wineQualityReds$pH,wineQualityReds$quality,mean)
+```
+
+PH: describes how acidic or basic a wine is on a scale from 0 (very acidic) to 14 (very basic); most wines are between 3-4 on the pH scale. It seems good red wines tend to be less in pH. Most values are between 3 and 3.6. Some outliers exist.
+```{r,echo=T}
+qplot(wineQualityReds$sulphates,bins=30)
+qplot(1,wineQualityReds$sulphates,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$sulphates)$out#Outliers
+length(out)#number of outliers
+qplot(wineQualityReds[wineQualityReds$sulphates<1,]$sulphates,bins=30)
+qplot(log(wineQualityReds[wineQualityReds$sulphates<1,]$sulphates),bins=30)
+summary(wineQualityReds$sulphates)
+tapply(wineQualityReds$sulphates,wineQualityReds$quality,mean)
+```
+
+sulphates: a wine additive which can contribute to sulfur dioxide gas (S02) levels, wich acts as an antimicrobial and antioxidant. Most values are between 0.4 and 0.8. Good wines tend to contain more sulphates. The values are a little skewed. There are 59 outliers. After removing the outliers, it is less skewed.
+```{r,echo=T}
+qplot(wineQualityReds$alcohol,bins=30)
+qplot(wineQualityReds$alcohol,geom="density")
+qplot(1,wineQualityReds$alcohol,geom="boxplot")
+out<-boxplot.stats(wineQualityReds$alcohol)$out#Outliers
+length(out)#number of outliers
+qplot(log(alcohol),data=wineQualityReds,facets=quality~.,bins=30)
+summary(wineQualityReds$alcohol)
+tapply(wineQualityReds$alcohol,wineQualityReds$quality,mean)
+```
+
+Alcohol: the percent alcohol content of the wine. Most values are between 9 and 12. The values are skewed, enven after log transformation. Exactly, red wines of Qulaity 5 and 6 have very strong impact on the distribution because of their numbers.
+
+# Univariate Analysis
+### What is the structure of your dataset?
+```{r}
+dim(wineQualityReds)
+str(wineQualityReds)
+names(wineQualityReds)
+table(wineQualityReds$quality)
+qplot(1,wineQualityReds$quality,geom="boxplot")
+```
+
+The dataset consist of 1599 rows and 12 columns. There are 1599 red wines, 11 numeric features("fixed.acidity", "volatile.acidity", "citric.acid", "residual.sugar", "chlorides", "free.sulfur.dioxide", "total.sulfur.dioxide", "density", "pH" ,"sulphates" ,"alcohol" ,"quality") and 1 integer outcome(quality),  The range of quality in this dataset was 3-8(from worst to best). The average of red wine quality was 5.636, and the median was 6, most of red wine qualities are between 5 and 7. According to the boxplot, red wines with Quality 3 or 8 are classified as outliers, but the total number is just 28.
+Furthermore, citric.acid, free.sulfur.dioxide, total.sulfur.dioxide, sulphates and alcohol are skewed from histograms, and residual.sugar, chlorides both have many outliers, but no more than 10%.
+### What is/are the main feature(s) of interest in your dataset?
+According to the analysis above, quality, volatile.acidity, citric.acid, chlorides, pH and sulphates are main features, because they seem to have certain tendancies with quality.
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+Fixed.acidity, residual.sugar, free.sulfur.dioxide, bf.sulfur.dioxide, and alcohol features can help me investigate into main features because they do not have missing values and their outliers are not more than 10% of observations.
+### Did you create any new variables from existing variables in the dataset?
+I created a bf.sulfur.dioxide feature based on total sulfur dioxide and free sulfur dioxide. These two sulfur may have different contribution to the qualities of red wine.
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+Total.sulfur.dioxide, bf.sulfur.dioxide, free.sulfur.dioxide and alcohol observations are skewed, so I transformed them into log values to make them symmetric.
+```{r}
+wineQualityReds2<-mutate(wineQualityReds,log.total.sulfur.dioxide=log(total.sulfur.dioxide),log.bf.sulfur.dioxide=log(bf.sulfur.dioxide),log.free.sulfur.dioxide=log(free.sulfur.dioxide),log.alcohol=log(alcohol))
+wineQualityReds2<-select(wineQualityReds2,-total.sulfur.dioxide,-bf.sulfur.dioxide,-free.sulfur.dioxide,-alcohol)
+```
+
+# Bivariate Plots Section
+```{r}
+cor(wineQualityReds2)###pairs(wineQualityReds2)
+apply(abs(cor(wineQualityReds2))>0.5,2,sum)
+abs(cor(wineQualityReds2))>0.6
+```
+
+The table shows some features are correlated, i.e., (citric.acid, fixed.acidity), (density,fixed.acidity), (pH, fixed.acidity), (citric.acid) and etc. Note: fixed.acidity is correlated with 3 other features, pH is correlated with 2 other features, both free.sulfur.dioxide and bf.sulfur.dioxide are quite correlated with total.sulfur.dioxide. 
+We use scatter plots and box plots to analyse the relationship between features in details. 
+```{r}
+qplot(fixed.acidity,citric.acid,data=wineQualityReds2,geom=c("point","smooth"))
+g<-ggplot(wineQualityReds2,aes(fixed.acidity,citric.acid))
+g+geom_point()+geom_smooth(method="lm")
+fit<-lm(citric.acid~fixed.acidity,data=wineQualityReds2)
+summary(fit)
+```
+
+It seems citric.acid has strong relationship with fixed.acidity. citric.acid grows as fixed.acidity increases.
+```{r}
+qplot(fixed.acidity,pH,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(fixed.acidity,density,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(factor(quality),fixed.acidity,data=wineQualityReds2,geom=("boxplot"))
+```
+
+It does show certain relationship between fixed.acidity and pH. pH decreases as fixed.acidity increases, whereas density increases as fixed.acidity increases. There are some outliers for red wines of quality 5 and 6.
+```{r}
+qplot(volatile.acidity,citric.acid,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(factor(quality),volatile.acidity,data=wineQualityReds2,geom=("boxplot"))
+```
+
+Citric.acid decreases as volatile.acidity increases, most of citric.acid values are within 0.2 to 0.8 of volatile.acidity . There's a tendancy that good wines have less volatile acidity averagely. Some outliers exist in red wines whose qualities are between 5 and 6.
+```{r}
+qplot(citric.acid,pH,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(factor(quality),citric.acid,data=wineQualityReds2,geom=("boxplot"))
+```
+
+Good red wines tend to have more citric acid averagely.
+```{r}
+qplot(factor(quality),residual.sugar,data=wineQualityReds2,geom=("boxplot"))
+```
+
+There's no clear tendancy.
+```{r}
+qplot(factor(quality),chlorides,data=wineQualityReds2,geom=("boxplot"))
+```
+
+No clear tendancy. But there are many outliers.
+```{r}
+qplot(log.free.sulfur.dioxide,log.total.sulfur.dioxide,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(factor(quality),log.free.sulfur.dioxide,data=wineQualityReds2,geom=("boxplot"))
+```
+
+The correlation is not obvious.
+```{r}
+qplot(factor(quality),log.total.sulfur.dioxide,data=wineQualityReds2,geom=("boxplot"))
+```
+
+No clear tendancy.
+```{r}
+qplot(density,fixed.acidity,data=wineQualityReds2,geom=c("point","smooth"))
+qplot(factor(quality),density,data=wineQualityReds2,geom=("boxplot"))
+```
+
+No clear tendancy. There are some outliers of red wines with quality 5 and 6.
+```{r}
+qplot(factor(quality),pH,data=wineQualityReds2,geom=("boxplot"))
+```
+
+Good wines seem to have lower pH averagely. Only a few outliers here.
+```{r}
+qplot(factor(quality),sulphates,data=wineQualityReds2,geom=("boxplot"))
+```
+
+Good wines seem to have more sulphates averagely. There are many outliers.
+```{r}
+qplot(factor(quality),log.alcohol,data=wineQualityReds2,geom=("boxplot"))
+```
+
+Good wines seem to have more alcohol averagely.
+
+# Bivariate Analysis
+From the boxplots above, we can see that volatile.acidity and pH have negative impact on quality, whereas sulphates and alcohol have positive impact.
+### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+The table shows some features are correlated. For instance, citric.acid grows as fixed.acidity increases, and pH decreases as fixed.acidity increases or citric.acid increases. Besides, citric.acid decreases as volatile.acidity increases. As for the outcome "quality", from the boxplots above, good wines tend to have less volatile acidity and lower pH averagely, whereas they tend to contain more citric acid, more sulphates and more alcohol averagely.
+### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+The fixed.acidity grows as density increases, and free.sulfur.dioxide grows as total.sulfur.dioxide increases.
+### What was the strongest relationship you found?
+According to the correlations and plots, fixed.acidity has strong relationship with citric.acid, density as well as log.PH, their correlation coefficients are above 0.6. Also, log.total.sulfur.dioxide has relationship with log.free.sulfur.dioxide and log.pH. Perhaps there are muti-correlations between several columns, we can discuss that in next step.
+
+# Multivariate Plots Section
+Correlation table can only reveal relationship between columns, there may be relationship between one and several other features, let's use vif check them first.
+```{r}
+library(car)
+fit<-lm(quality~.,data=wineQualityReds2)
+vif(fit)
+```
+
+It is clear from the linear regression that fixed.acidity, log.total.sulfur.dioxide, log.bf.sulfur.dioxide, log.free.sulfur.dioxide and density are quite dependant on other features.
+We use linear regression to check the relationship between variables.
+```{r}
+fit<-lm(fixed.acidity~.-quality,data=wineQualityReds2)
+summary(fit)
+```
+
+It seems fixed.acidity has strong linear relationship with citric.acid, residual.sugar, chlorides, density, pH, sulphates and log.alcohol.
+```{r}
+fit<-lm(log.total.sulfur.dioxide~.-quality,data=wineQualityReds2)
+summary(fit)
+```
+
+It seems log.total.sulfur.dioxide has strong linear relationship with sulphates, log.bf.sulfur.dioxide and log.free.sulfur.dioxide.
+```{r}
+fit<-lm(log.bf.sulfur.dioxide~.-quality,data=wineQualityReds2)
+summary(fit)
+```
+
+Log.bf.sulfur.dioxide are correlated with citric.acid, density, sulphates, and two other sulfur dioxides. Actually, log.free.sulfur.dioxide is almost impacted by the same features.
+```{r}
+fit<-lm(log.free.sulfur.dioxide~.-quality,data=wineQualityReds2)
+summary(fit)
+```
+
+Now let's have a look at density.
+```{r}
+fit<-lm(density~.-quality,data=wineQualityReds2)
+summary(fit)
+```
+
+Density is strongly correlated with fixed.acidity, volatile.acidity, residual.sugar and etc.
+In our next steps, we can disregard fixed.acidity, total.sulfur.dioxide, density.
+There are no categorical features, so we can cut some into intervals to do danalysis.
+```{r}
+wineQualityReds3<-wineQualityReds2
+wineQualityReds3$volatile.acidity<-cut(wineQualityReds3$volatile.acidity,5)
+g<-ggplot(wineQualityReds3,aes(citric.acid,quality))
+g+geom_line(aes(colour=volatile.acidity),stat='summary',fun.y=median)
+```
+
+It seems that when volatile.acidity has a big value and citric.acid has a small value, the red wine has a lower quality.
+```{r}
+wineQualityReds3<-wineQualityReds2
+wineQualityReds3$pH<-cut(wineQualityReds3$pH,5)
+g<-ggplot(wineQualityReds3,aes(volatile.acidity,quality))
+g+geom_line(aes(colour=pH))
+```
+
+It seems that when volatile.acidity has a big value and pH has a big value, the red wine has a lower quality.
+Let's use linear regression to explore the multivariate relationships. The scales of features are not hugely different, so we do not normalize them.
+```{r}
+fit1<-lm(quality~.-fixed.acidity-density-log.total.sulfur.dioxide-density,data=wineQualityReds2)
+summary(fit1)
+```
+
+From the p-values, we can see that residual.sugar, citric.acid are not so important in terms of quality.
+```{r}
+fit2<-lm(quality~.-fixed.acidity-density-log.total.sulfur.dioxide-density-residual.sugar-citric.acid,data=wineQualityReds2)
+summary(fit2)
+```
+
+F-statistic is quite large, so the model works. But the Adjusted R-squared is not large, perhaps some interactions between features or even polynomial exist.
+```{r}
+fit3<-lm(quality~volatile.acidity+sulphates+pH+chlorides+log.alcohol+log.bf.sulfur.dioxide+log.free.sulfur.dioxide+I(sulphates*pH),data=wineQualityReds2)
+summary(fit3)
+qplot(fit3$residual)
+summary(fit3$residual)
+qplot(1:length(fit3$residual),fit3$residual)
+```
+
+It seems the produce of sulphates and pH are also correlated to quality. The residuals are almost normally distributed, so the linear model works.
+```{r}
+g<-ggplot(wineQualityReds2,aes(sulphates*pH,quality))
+g+geom_point()+geom_smooth(method="lm")
+```
+
+# Multivariate Analysis
+### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+From the figures and regression discussed above, volatile.acidity, sulphates, pH, chlorides,log.alcohol, log.bf.sulfur.dioxide and log.free.sulfur.dioxide, they strengthened each other in deciding the quality of red wine.
+### Were there any interesting or surprising interactions between features?
+Interaction, product of sulphates and pH(sulphates*pH), they appeared to be correlated to quality.
+### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+I created a linear model to explore the relationship between quality and other features. The strengths are that it is easy to understand the model, the quality has a linear relationship with other features, the impact of each feature can be calculated quickly. Besides, linear model can work on new dataset well. The limitations is that linear model lacks flexibility, perhaps the real relationship is not so simple, the RSE can be more ideal if we use a more proper model such as polynomial model.
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One}
+qplot(wineQualityReds$citric.acid,bins=30,xlab="Citric Acid",ylab="Count", main="Histogram of Citric Acid")
+```
+
+### Description One
+The values of Citric Acid are right skewed.
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+g<-ggplot(wineQualityReds2,aes(fixed.acidity,citric.acid,colour=factor(quality)))
+g<-g+geom_point()+geom_smooth(method="lm")
+g+xlab('Fixed Acidity')+ylab('Citric Acid')+labs(title="Relationship between fixed.acidity and citric.acid")
+```
+
+### Description Two
+Some features are quite correlated with others, i.e., fixed.acidity has certain linear relationship with citric.acid.
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+wineQualityReds3<-wineQualityReds2
+wineQualityReds3$log.alcohol<-cut(wineQualityReds3$log.alcohol,5)
+g<-ggplot(wineQualityReds3,aes(volatile.acidity,quality))
+g+geom_line(aes(colour=log.alcohol),stat='summary',fun.y=median)+xlab('volatile.acidity')+ylab('Quality')+labs(title="Relationship between Volatile Acidity and Quality")
+```
+### Description Three
+Generally speaking, Volatile acidity has a negative impact on red wine qualities, the more the worse, whereas log(10) alcohol has a positive contribution.
+------
+
+# Reflection
+The wineQualityReds dataset has 1599 red wines whose qualities range from 3 to 8.I started by analyzing each features in the dataset through histograms and summary, and then I explored the relationship between features and outcome. Eventually, I explored the quality of red wine across many variables and created a linear model to predict qualities. I found features volatile.acidity and pH have negative impact on quality, whereas the interaction (sulphates*pH) and alcohol have positive impact both from boxplots and linear model. In addition, features such as fixed.acidity, total.sulfur.dioxide and density are quite dependent on other features, so I did not consider them in later discussion. For the linear model, I tried to find the relationship between quality and significant features according to p-values and adjusted R-squared, finally I only kept volatile.acidity, chlorides, pH, sulphates bf.sulfur.dioxide(newly created variable), free.sulfur.dioxide and alcohol as siginificant features. Some limitations of this model were, lack of fexibility to explore nonlinear relationship. Considering that most of red wines have qualities ranging from 5 to 7, there are just a few samples for bad and top wines, perhaps the model will do better if the dataset are balanced.
