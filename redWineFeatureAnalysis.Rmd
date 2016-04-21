@@ -528,13 +528,15 @@ From the figures and tree model discussed above,  volatile.acidity, sulphates an
 I haven't found any interesting interactions between features.
 
 ### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+
 I created a classification tree model to explore the relationship between quality and other features. The strengths are that it is easy to understand and explain the model from the tree plots, the quality are decided by the nodes of other features. Besides, tree model can work very quickly on new dataset as well. The limitations is that tree model may be too flexible, which can cause overfitting in training dataset, the accuracy can be more ideal if we use a more proper model such as random forest.
+
 ------
 
 # Final Plots and Summary
 ### Plot One
 ```{r echo=FALSE, Plot_One}
-qplot(wineQualityReds$citric.acid,bins=30,xlab="Citric Acid",ylab="Count", main="Histogram of Citric Acid")
+qplot(wineQualityReds$citric.acid,bins=30,xlab="Citric Acid",ylab="Count", main="Histogram of Citric Acid",color=I("orange"))
 ```
 
 ### Description One
@@ -558,8 +560,11 @@ qplot(volatile.acidity,sulphates,data=wineQualityReds2,
       main="Multivariate Analysis of Red Wine Qualities"
       ) 
 ```
+
 ### Description Three
+
 From the plot, it is clear that more alcohol, more sulphates and less valatile.acidity tend to make good wine.
+
 ------
 
 # Reflection
