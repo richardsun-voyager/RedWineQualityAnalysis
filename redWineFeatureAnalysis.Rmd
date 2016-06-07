@@ -1,6 +1,7 @@
 Red Wine Quality Analysis by Sun Xiaobing
 ========================================================
-This project was aimed to find Which chemical properties influence the quality of red wines. The data set was created by: Paulo Cortez (Univ. Minho), Antonio Cerdeira, Fernando Almeida, Telmo Matos and Jose Reis (CVRVV) @ 2009  
+
+This project was aimed to find Which chemical properties influence the quality of red wines. The data set was created by: Paulo Cortez (Univ. Minho), Antonio Cerdeira, Fernando Almeida, Telmo Matos and Jose Reis (CVRVV) @ 2009 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
 library(ggplot2)
 library(dplyr)
